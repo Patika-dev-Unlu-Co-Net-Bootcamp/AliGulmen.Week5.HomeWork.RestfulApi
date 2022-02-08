@@ -1,5 +1,6 @@
 ﻿using AliGulmen.Week5.HomeWork.RestfulApi.Entities;
 using AliGulmen.Week5.HomeWork.RestfulApi.Extensions;
+using AliGulmen.Week5.HomeWork.RestfulApi.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -102,6 +103,22 @@ namespace AliGulmen.Week5.HomeWork.RestfulApi.Repositories.ContainerRepositories
         }
 
 
+
+    
+
+        public PagingResultModel<Container> GetContainersWithParameters(QueryParamsModel query)
+        {
+            PagingResultModel<Container> containers = new PagingResultModel<Container>(query);
+
+            containers.GetData(containerList.AsQueryable());
+            
+
+            return containers;
+        }
+
+
+
+
         public void UpdateContainer(Container model, int containerId)
         {
             _model = model;
@@ -133,5 +150,7 @@ namespace AliGulmen.Week5.HomeWork.RestfulApi.Repositories.ContainerRepositories
 
             container.LocationId = _locationId != default ? _locationId : container.LocationId;
         }
+
+      
     }
 }

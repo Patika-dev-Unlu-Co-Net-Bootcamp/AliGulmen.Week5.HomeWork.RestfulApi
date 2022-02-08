@@ -1,8 +1,11 @@
 ﻿using AliGulmen.Week5.HomeWork.RestfulApi.Entities;
+using AliGulmen.Week5.HomeWork.RestfulApi.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using AliGulmen.Week5.HomeWork.RestfulApi.Services.StorageService;
 using Microsoft.AspNetCore.Authorization;
 using AliGulmen.Week5.HomeWork.RestfulApi.Repositories;
+using System.Linq;
+using System;
 
 namespace AliGulmen.Week5.HomeWork.RestfulApi.Controllers
 {
@@ -40,6 +43,24 @@ namespace AliGulmen.Week5.HomeWork.RestfulApi.Controllers
             var result = _repository.GetContainerDetail(id);
             return Ok(result);
         }
+
+
+
+        //GET api/containers
+        [HttpGet("WithParams")]
+        [AllowAnonymous]
+        public IActionResult GetContainersWithParameters([FromQuery] QueryParamsModel query)
+        {
+            var result = _repository.GetContainersWithParameters(query);
+            Response.Headers.Add("X-Paging", System.Text.Json.JsonSerializer.Serialize(result.Result));
+            return Ok(result);
+            
+        }
+
+
+
+
+
 
 
 
