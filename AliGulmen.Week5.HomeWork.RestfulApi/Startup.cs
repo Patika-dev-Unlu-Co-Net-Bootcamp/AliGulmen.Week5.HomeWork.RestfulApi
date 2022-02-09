@@ -100,6 +100,7 @@ namespace AliGulmen.Week5.HomeWork.RestfulApi
             services.AddSingleton<IStorageService, WarehouseStorage>();
 
 
+            services.AddMemoryCache();
 
             services.AddSingleton<IContainerRepository, InMemContainerRepository>();
             services.AddSingleton<ILocationRepository, InMemLocationRepository>();

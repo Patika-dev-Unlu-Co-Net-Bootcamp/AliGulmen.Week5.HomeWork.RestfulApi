@@ -2,6 +2,8 @@
 using AliGulmen.Week5.HomeWork.RestfulApi.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
+using System.Collections.Generic;
 
 namespace AliGulmen.Week5.HomeWork.RestfulApi.Controllers
 {
@@ -13,10 +15,13 @@ namespace AliGulmen.Week5.HomeWork.RestfulApi.Controllers
 
     {
         private readonly IProductRepository _repository;
+       
+
 
         public ProductController(IProductRepository repository)
         {
             _repository = repository;
+            
         }
 
         /************************************* GET *********************************************/
@@ -103,6 +108,7 @@ namespace AliGulmen.Week5.HomeWork.RestfulApi.Controllers
 
         //PATCH api/products/id
         [HttpPatch("{id}")]
+        [AllowAnonymous]
         public IActionResult UpdateAvailability(int id, bool isActive)
         {
             _repository.UpdateProductAvailability(id, isActive);

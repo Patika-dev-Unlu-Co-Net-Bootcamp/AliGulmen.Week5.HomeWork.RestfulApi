@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AliGulmen.Week5.HomeWork.RestfulApi.Repositories.ContainerRepositories;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace AliGulmen.Week5.HomeWork.RestfulApi.Repositories.ProductRepositories
 {
@@ -14,6 +15,12 @@ namespace AliGulmen.Week5.HomeWork.RestfulApi.Repositories.ProductRepositories
         private int _rotationId;
         private bool _isActive;
         private List<Container> containerList = InMemContainerRepository.ContainerListOut;
+        private readonly IMemoryCache _memoryCache;
+
+        public InMemProductRepository(IMemoryCache memoryCache)
+        {
+            _memoryCache = memoryCache;
+        }
 
         private static readonly List<Product> productList = new() {
             new Product { Id = 1, ProductCode = "87965493291", Description = "Prod1", RotationId = 1, IsActive = true, LifeTime = 365 },
@@ -43,7 +50,10 @@ namespace AliGulmen.Week5.HomeWork.RestfulApi.Repositories.ProductRepositories
                 throw new InvalidOperationException("You already have this productCode in your list!");
 
             product = _model;
-            productList.Add(product);
+            if (_memoryCache.TryGetValue("products", out List<Product> productsCache))
+                _memoryCache.Remove("products");
+
+                productList.Add(product);
         }
 
 
@@ -56,6 +66,8 @@ namespace AliGulmen.Week5.HomeWork.RestfulApi.Repositories.ProductRepositories
             if (ourRecord is null)
                 throw new InvalidOperationException("There is no record to delete!");
 
+            if (_memoryCache.TryGetValue("products", out List<Product> productsCache))
+                _memoryCache.Remove("products");
             productList.Remove(ourRecord);
         }
 
@@ -102,7 +114,14 @@ namespace AliGulmen.Week5.HomeWork.RestfulApi.Repositories.ProductRepositories
 
         public List<Product> GetProducts()
         {
+            if (_memoryCache.TryGetValue("products", out List<Product> productsCache))
+                return productsCache;
+
             var products = productList.OrderBy(p => p.Id).ToList<Product>();
+            _memoryCache.Set("products", products, new MemoryCacheEntryOptions { 
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7),
+                Priority = CacheItemPriority.High
+            });
             return products;
         }
 
@@ -129,7 +148,9 @@ namespace AliGulmen.Week5.HomeWork.RestfulApi.Repositories.ProductRepositories
             product.RotationId = _model.RotationId != default ? _model.RotationId : product.RotationId;
             product.IsActive = _model.IsActive != default ? _model.IsActive : product.IsActive;
             product.LifeTime = _model.LifeTime != default ? _model.LifeTime : product.LifeTime;
-
+            
+            if (_memoryCache.TryGetValue("products", out List<Product> productsCache))
+                _memoryCache.Remove("products");
         }
 
         public void UpdateProductAvailability(int productId, bool isActive)
@@ -143,6 +164,9 @@ namespace AliGulmen.Week5.HomeWork.RestfulApi.Repositories.ProductRepositories
 
 
             product.IsActive = _isActive != default ? _isActive : product.IsActive;
+            
+            if (_memoryCache.TryGetValue("products", out List<Product> productsCache))
+                _memoryCache.Remove("products");
         }
     }
 }
