@@ -101,6 +101,7 @@ namespace AliGulmen.Week5.HomeWork.RestfulApi
 
 
             services.AddMemoryCache();
+            services.AddResponseCaching();
 
             services.AddSingleton<IContainerRepository, InMemContainerRepository>();
             services.AddSingleton<ILocationRepository, InMemLocationRepository>();
@@ -131,6 +132,7 @@ namespace AliGulmen.Week5.HomeWork.RestfulApi
             app.UseAuthentication();
 
             app.UseAuthorization();
+            app.UseResponseCaching();
 
             app.UseEndpoints(endpoints =>
             {

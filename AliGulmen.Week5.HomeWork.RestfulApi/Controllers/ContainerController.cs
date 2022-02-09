@@ -65,7 +65,9 @@ namespace AliGulmen.Week5.HomeWork.RestfulApi.Controllers
 
 
         //GET api/products/list?maxWeight=100
+        [ResponseCache(Duration = 1000, Location = ResponseCacheLocation.Any )]
         [HttpGet("list")]
+        [AllowAnonymous]
         public IActionResult GetContainersByMaxWeight([FromQuery] int maxWeight)
         {
 
