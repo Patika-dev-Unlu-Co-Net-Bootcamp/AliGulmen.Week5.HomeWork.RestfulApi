@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace AliGulmen.Week5.HomeWork.RestfulApi.Repositories
 {
@@ -39,33 +40,38 @@ namespace AliGulmen.Week5.HomeWork.RestfulApi.Repositories
 
         public List<Stock> GetStocks()
         {
-            var cachedStocks = _distributedCache.GetString("stockList");
-        
-            
-            if(string.IsNullOrEmpty(cachedStocks))
+            var cachedStocks = _distributedCache.Get("stockList");
+
+
+            if (cachedStocks == null)
             {
                 var stocks = stockList.OrderBy(u => u.ProductId).ToList<Stock>();
 
-                var cacheOptions = new DistributedCacheEntryOptions()
+                if (stocks.Count >= 100)
                 {
-                    AbsoluteExpiration = DateTime.Now.AddMinutes(30)
-                };
-                _distributedCache.SetString("stockList",JsonConvert.SerializeObject(stocks),cacheOptions);
+                    var cacheOptions = new DistributedCacheEntryOptions()
+                    {
+                        AbsoluteExpiration = DateTime.Now.AddMinutes(30)
+                    };
+
+                    _distributedCache.Set("stockList", Encoding.UTF8.GetBytes(stocks.ToString()), cacheOptions);
+
+                }
 
                 return stocks;
             }
             else
             {
-                return JsonConvert.DeserializeObject<List<Stock>>(cachedStocks);
+                return JsonConvert.DeserializeObject<List<Stock>>(Encoding.UTF8.GetString(cachedStocks));
 
             }
 
-           
+
 
         }
 
 
-    
+
 
         public void UpdateStock(int stockId, Stock newStock)
         {
@@ -84,6 +90,7 @@ namespace AliGulmen.Week5.HomeWork.RestfulApi.Repositories
             stock.ProductId = _model.ProductId != default ? _model.ProductId : stock.ProductId;
             stock.ReadyToShip = _model.ReadyToShip != default ? _model.ReadyToShip : stock.ReadyToShip;
             stock.StockOnRack = _model.StockOnRack != default ? _model.StockOnRack : stock.StockOnRack;
+            _distributedCache.Remove("stockList");
         }
 
         public void CreateStock(Stock newStock)
@@ -99,6 +106,7 @@ namespace AliGulmen.Week5.HomeWork.RestfulApi.Repositories
                 throw new InvalidOperationException("You already have this uomCode in your list!");
 
             stock = _model;
+            _distributedCache.Remove("stockList");
             stockList.Add(stock);
         }
     }
