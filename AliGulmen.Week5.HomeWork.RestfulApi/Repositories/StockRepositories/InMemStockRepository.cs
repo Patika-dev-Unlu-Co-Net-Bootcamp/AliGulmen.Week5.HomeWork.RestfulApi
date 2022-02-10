@@ -1,4 +1,6 @@
 ﻿using AliGulmen.Week5.HomeWork.RestfulApi.Entities;
+using Microsoft.Extensions.Caching.Distributed;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +9,14 @@ namespace AliGulmen.Week5.HomeWork.RestfulApi.Repositories
 {
     public class InMemStockRepository : IStockRepository
     {
+
+        private readonly IDistributedCache _distributedCache;
+
+        public InMemStockRepository(IDistributedCache distributedCache)
+        {
+            _distributedCache = distributedCache;
+        }
+
         private static List<Stock> stockList = new()
         {
             new Stock { ProductId = 1, ReadyToShip = 12, StockOnRack = 145 },
@@ -24,10 +34,34 @@ namespace AliGulmen.Week5.HomeWork.RestfulApi.Repositories
         private Stock _model = new Stock();
         private int _stockId;
 
+
+
+
         public List<Stock> GetStocks()
         {
-            var stocks = stockList.OrderBy(u => u.ProductId).ToList<Stock>();
-            return stocks;
+            var cachedStocks = _distributedCache.GetString("stockList");
+        
+            
+            if(string.IsNullOrEmpty(cachedStocks))
+            {
+                var stocks = stockList.OrderBy(u => u.ProductId).ToList<Stock>();
+
+                var cacheOptions = new DistributedCacheEntryOptions()
+                {
+                    AbsoluteExpiration = DateTime.Now.AddMinutes(30)
+                };
+                _distributedCache.SetString("stockList",JsonConvert.SerializeObject(stocks),cacheOptions);
+
+                return stocks;
+            }
+            else
+            {
+                return JsonConvert.DeserializeObject<List<Stock>>(cachedStocks);
+
+            }
+
+           
+
         }
 
 
