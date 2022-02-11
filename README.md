@@ -42,7 +42,7 @@ if (!String.IsNullOrEmpty(Params.SearchQuery))
 
 ```
 
-	* For Sorting, if the direction is Desc; results ordered descending. Otherwise results ordered Ascending. In this way, the default direction is set to ascending 
+- For Sorting, if the direction is Desc; results ordered descending. Otherwise results ordered Ascending. In this way, the default direction is set to ascending 
 
 
 ```c
@@ -67,7 +67,7 @@ AddRange(result);
 
 ```
 
-	* For Pagination, Linq parameters used to get right data.
+- For Pagination, Linq parameters used to get right data.
 
 
 ```c
@@ -95,7 +95,7 @@ AddRange(result);
 
 
 
-	* After adding, updating or deleting any product, cache deleted to recreate new cache.
+- After adding, updating or deleting any product, cache deleted to recreate new cache.
 
 ```c
 	 if (_memoryCache.TryGetValue("products", out List<Product> productsCache))
@@ -142,7 +142,7 @@ AddRange(result);
             }
 ```
 
-	* Cache removed on update, create and delete methods as well.
+- Cache removed on update, create and delete methods as well.
 
 ```c
  _distributedCache.Remove("stockList");
