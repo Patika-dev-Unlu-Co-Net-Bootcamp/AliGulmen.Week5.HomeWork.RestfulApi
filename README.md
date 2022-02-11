@@ -81,8 +81,8 @@ AddRange(result);
 
 ```c
 
-			if (_memoryCache.TryGetValue("products", out List<Product> productsCache))
-                return productsCache;
+if (_memoryCache.TryGetValue("products", out List<Product> productsCache))
+            return productsCache;
 
             var products = productList.OrderBy(p => p.Id).ToList<Product>();
             _memoryCache.Set("products", products, new MemoryCacheEntryOptions { 
