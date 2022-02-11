@@ -11,9 +11,147 @@ Restful api oluşturun
 - endpointlerinizden en az birinde response cache mekanizmasını kullanın
 - distributed cache olarak redis e yazan ve okuyan bir cache yönetim servisi yazın. sorgu adedi 100 ve üzeri olursa istenilen zaman aralığında cache yazsın ve okusun
 
+## Key Points
+
+- Pagination & Sorting & Filtering used on ContainerController for api/containers/WithParams
+	* For Searching, every column checked if it contains SearchQuery
+
+```c
+
+if (!String.IsNullOrEmpty(Params.SearchQuery))
+            {
+                foreach (var item in query)
+                {
+                    var columns = item.GetType().GetProperties().ToList();
+                    foreach (var column in columns)
+                    {
+
+                        if (column.GetValue(item) != null)
+
+                        {
+                            var value = column.GetValue(item);
+                            bool stringFound = value.ToString().Contains(Params.SearchQuery);
+                            if (stringFound)
+                                result.Add(item);
+
+                        }
+
+                    }
+
+                }
+
+```
+
+	* For Sorting, if the direction is Desc; results ordered descending. Otherwise results ordered Ascending. In this way, the default direction is set to ascending 
+
+
+```c
+
+ if (!string.IsNullOrWhiteSpace(Params.Sort))
+            {
+
+
+                var entity = typeof(T);
+
+                var property = entity.GetProperty(char.ToUpper(Params.Sort[0]) + Params.Sort.Substring(1).ToLower());
+
+
+                result = Params.SortingDirection == Common.SortingDirection.DESC
+                    ? result.OrderByDescending(x => property.GetValue(x, null)).ToList() 
+                    : result.OrderBy(x => property.GetValue(x, null)).ToList();
+            }
+
+          
+
+AddRange(result);
+
+```
+
+	* For Pagination, Linq parameters used to get right data.
+
+
+```c
+
+ result = query.Skip((Params.Page - 1) * Params.PageSize).Take(Params.PageSize).ToList();
+
+```
+
+- This project does not include so many parameters in appsettings.json. So, I decided to use memory cache on ProductController for GetProducts
+	* Product lists doesn't change so much in warehouses. So, it is suitable for caching them in memory.
+
+```c
+
+			if (_memoryCache.TryGetValue("products", out List<Product> productsCache))
+                return productsCache;
+
+            var products = productList.OrderBy(p => p.Id).ToList<Product>();
+            _memoryCache.Set("products", products, new MemoryCacheEntryOptions { 
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7),
+                Priority = CacheItemPriority.High
+            });
+            return products;
+
+```
+
+
+
+	* After adding, updating or deleting any product, cache deleted to recreate new cache.
+
+```c
+	 if (_memoryCache.TryGetValue("products", out List<Product> productsCache))
+                _memoryCache.Remove("products");
+
+```
+
+- ResponseCaching used on ContainerController to cache query of getting containers by weight.
+
+
+```c
+ [ResponseCache(Duration = 1000, Location = ResponseCacheLocation.Any )]
+ 
+```
+
+- Distributed cache created for Stock lists. And caching not used until the count of records more than 100.
+
+
+```c
+ var cachedStocks = _distributedCache.Get("stockList");
+
+
+            if (cachedStocks == null)
+            {
+                var stocks = stockList.OrderBy(u => u.ProductId).ToList<Stock>();
+
+                if (stocks.Count >= 100)
+                {
+                    var cacheOptions = new DistributedCacheEntryOptions()
+                    {
+                        AbsoluteExpiration = DateTime.Now.AddMinutes(30)
+                    };
+
+                    _distributedCache.Set("stockList", Encoding.UTF8.GetBytes(stocks.ToString()), cacheOptions);
+
+                }
+
+                return stocks;
+            }
+            else
+            {
+                return JsonConvert.DeserializeObject<List<Stock>>(Encoding.UTF8.GetString(cachedStocks));
+
+            }
+```
+
+	* Cache removed on update, create and delete methods as well.
+
+```c
+ _distributedCache.Remove("stockList");
+```
+
+
 ## External References
 
-- none
+- [Redis Download](https://github.com/microsoftarchive/redis/releases/tag/win-3.0.504)
 
 # Week 4
 

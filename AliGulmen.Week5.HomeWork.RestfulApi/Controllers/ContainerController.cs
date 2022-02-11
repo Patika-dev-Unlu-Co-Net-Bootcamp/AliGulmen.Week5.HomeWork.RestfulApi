@@ -46,7 +46,7 @@ namespace AliGulmen.Week5.HomeWork.RestfulApi.Controllers
 
 
 
-        //GET api/containers
+        //GET api/containers/WithParams
         [HttpGet("WithParams")]
         [AllowAnonymous]
         public IActionResult GetContainersWithParameters([FromQuery] QueryParamsModel query)
